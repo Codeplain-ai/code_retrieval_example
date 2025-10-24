@@ -1,0 +1,171 @@
+# Command-Line Code Retrieval Tool
+
+***Definitions:***
+
+- :codeRetrievalTool: is a CLI application that can extract :embedding:s from the :codeBase: files, save them to an :index: and then search the :index: using a natural language :query:.
+
+- :codeBase: is a collection of source files stored in a directory structure.
+  - :codeBase: can include multiple programming languages (.py, .js, .java, etc.).
+  - :codeBase: may include nested directories and submodules.
+  - Only files matching specified extensions are considered for indexing.
+
+- :chunk: represents a logical portion of code extracted from :codeBase:.
+  - A :chunk: can correspond to:
+    - A function or method
+    - A class
+    - A block of code (e.g., grouped lines)
+  - Each :chunk: has the following metadata:
+    - Filename – source file path
+    - Line Range – starting and ending line numbers
+    - Function/Class Name – if applicable
+    - :chunk: Text – code snippet for display
+
+- :embedding: is a vector representation of a :chunk: used for semantic similarity search.
+  - :embedding:s are generated using a pre-trained model code embedding model.
+  - Each :embedding: is associated with its corresponding :chunk: metadata.
+
+- :index: is a vector database storing :embedding:s and their associated metadata.
+  - Supports fast similarity search using FAISS.
+  - :index: is persistent and can be saved to disk.
+  - Supports incremental updates when files in :codeBase: are added, modified, or deleted.
+
+- :query: represents a user-provided natural language search string.
+  - :query: is converted into an :embedding: using the same model as the code :chunk:s.
+  - The :query: :embedding: is compared with indexed :embedding:s to retrieve top-k similar :chunk:s.
+
+- :cli: (Command-Line Interface) is the interface through which :user: interacts with the :codeRetrievalTool:.
+  - Accepts search queries and optional parameters such as:
+    - `--top-k` – number of results to return
+    - `--extensions` – filter by file extensions
+    - `--folder-path` – restrict search to specific directories
+
+- :user: is a human interacting with the :codeRetrievalTool: via :cli:.
+
+***Non-Functional Requirements:***
+
+- :codeRetrievalTool: must be written in Python 3.11+.
+
+- The following external libraries must be used:
+  - `sentence-transformers` for embedding generation.
+  - `faiss` for vector indexing and similarity search.
+  - `click` for command-line interface handling.
+  - `pytest` for automated testing.
+
+- :index: must be stored persistently on disk and loadable for repeated searches without regeneration.
+
+- Incremental updates must efficiently update :index: without rebuilding from scratch.
+
+- File operations must handle large codebases gracefully, avoiding excessive memory consumption.
+
+- :embedding:s and :index: must be stored in a format that supports metadata retrieval alongside vectors.
+
+- [ModelUse](./jina_model_use.md) reference file describes the implementation of the Jina Embedding model in then sentence-transformers and transformers libraries. It also describes an example of chunking.
+
+- For testing, the jina-embeddings-v2-small-en model should be used.
+
+- The model should be usable on a CPU.
+
+***Test Requirements:***
+
+- The Conformance Tests will be run using the `python -m unittest discover` call.
+
+- Conformance Tests that include loading of :index: and the model might take a long time so they should not be limited by short timeouts during testing. A model can take up to 2 minutes to load if it has not been downloaded beforehand.
+
+## File parsing
+
+***Non-Functional Requirements:***
+
+- The code should be implemented in the file_parsing folder.
+
+***Functional Requirements:***
+
+- Implement a functionality to extract :chunk:s from a given file.
+  - Take a file path as input.
+  - Extract :chunk:s from the file with accurate metadata (filename, line range, function/class name, chunk text).
+  - The chunking strategy should be heuristic line-based chunking where the code is split into chunks of 50 lines.
+  - Return the extracted :chunk:s and their respective metadata.
+
+- Implement a function that takes a folder path and a list of file extensions as input and extracts :chunk:s from each file.
+  - Should only extract :chunk:s from files that match extensions from the input extensions list.
+  - Returns a list of :chunk:s composed of :chunk:s extracted from all files.
+
+## Embeddings
+
+***Non-Functional Requirements:***
+
+- The code should be implemented in the embeddings folder.
+
+***Functional Requirements:***
+
+- Implement an CodeEmbedding class that implements the :embedding:
+  - The class should contain an __init__ function that initializes the embedding model using the SentenceTransformers library.
+  - The model name should be taken as an optional input and be "jinaai/jina-code-embeddings-0.5b" by default.
+
+- Extend the functionality of the CodeEmbedding class with an extract_embeddings function that takes as input a :chunk: or string and extracts the embeddings from the :chunk: text or input string using the embedding model.
+  - The function should return the extracted embedding of the input :chunk: or and input string.
+
+- Implement the process_chunks function in the CodeEmbeddingClass that takes a list of :chunk:s, extracts :embedding:s from each of them and associates the resulting :embedding: with the :chunk:.
+
+## Index
+
+***Non-Functional Requirements:***
+
+- :index: should be implemented in the data_index folder
+
+- :index: should be implemented with functions from the faiss library
+
+***Functional Requirements:***
+
+- Create the CodeIndex class that implements the :index: 
+  - It should contain an init function that initializes the :index: of :embedding:s.
+  - Use the faiss library to create a FAISS :index: object.
+  - initialize the metadata as an empty list
+
+- Implement an add function to the CodeIndex class that takes an :embeding: and :chunk: metadata as input and adds them to the :index: and metadata.
+
+- Implement functionality in the CodeIndex class to load the FAISS :index: and metadata taking file paths as input.
+
+- Implement a save function that writes the FAISS :index: and metadata to their respective files.
+
+  ***Acceptance Tests:***
+
+  - The save function should result in a FAISS index file and a metadata file where both files should have the same number of entries and the metadata file should contain accurate metadata for every extracted Chunk.
+
+- Implement a query_index function that takes a string as an input and returns the top K results from :index:.
+  - The embeddings module should be used to extract the :embedding:s from an input string to compare to the :embedding:s in :index:.
+  - The function should return the the top K results from :index:.
+
+## CLI
+
+***Non-Functional Requirements:***
+
+- :cli: entry point should be defined in the code_search.py file in the base folder.
+
+***Test Requirements:***
+
+- Where appropriate, the Conformance Tests must test the :cli:
+
+- :cli: Tests must simulate:
+  - Search commands with various queries
+  - Output formatting and metadata display
+  - Handling of invalid or empty queries
+
+- The :cli: executable file will be in the current working directory when testing.
+
+***Functional Requirements:***
+
+- Implement the --init CLI command:
+  - Take a folder path as input
+  - Initializes a new CodeIndex
+  - Extract :chunk:s from files in the chosen folder using functions in the file_parsing module
+  - Fails if :index: at that folder path already exists
+  - Extract :embedding:s from :chunk:s using the process_chunks function from the embeddings module
+  - Adds the :embedding:s to :index: using the add function of the CodeIndex class
+  - Saves :index: using the save function of the CodeIndex class.
+
+- Implement the --query CLI command:
+  - Take an index file and a query as input
+  - Load :index: using the load function of the CodeIndex class.
+  - Extract the :embedding: of the query using extract_embeddings function of the embeddings module
+  - Search :index: using the search function of the CodeIndex class to obtain top-k :chunk:s.
+  - Print out the top-k :chunk:s.

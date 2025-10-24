@@ -178,16 +178,21 @@ print(cos_sim(embeddings[0], embeddings[1]))
 ```
 
 
-In the CLI do the following before importing anything else:
+To prevent segfaults when loading models from within the CLI, torch thread limits must be set before any model loading occurs. This should be done in the CLI entry point as follows:
 
 ```python
-import torch
-torch.set_num_threads(1)
-torch.set_num_interop_threads(1)
+if __name__ == '__main__':
+    import torch
+    try:
+        torch.set_num_threads(1)
+        torch.set_num_interop_threads(1)
+    except RuntimeError:
+        # If torch has already been initialized (e.g., during testing),
+        # we can't change thread settings, but we can continue
+        pass
+    
+    cli()
 ```
-
-This should be the first few lines in the CLI file.
-This wil prevent segfaults when loading models from within the CLI.
 
 
 # Approximate indexing of a codebase

@@ -1,0 +1,175 @@
+# Command-Line Code Retrieval Tool
+
+***Definitions:***
+
+- The Code Base is a collection of source files stored in a directory structure.
+  - The Code Base can include multiple programming languages (.py, .js, .java, etc.).
+  - The Code Base may include nested directories and submodules.
+  - Only files matching specified extensions are considered for indexing.
+
+- The Chunk represents a logical portion of code extracted from The Code Base.
+  - A Chunk can correspond to:
+    - A function or method
+    - A class
+    - A logical block of code (e.g., grouped lines or comment-separated block)
+  - Each Chunk has the following metadata:
+    - Filename – source file path
+    - Line Range – starting and ending line numbers
+    - Function/Class Name – if applicable
+    - Chunk Text – code snippet for display
+
+- The Embedding is a vector representation of a Chunk used for semantic similarity search.
+  - Embeddings are generated using a pre-trained model code embedding model.
+  - Each Embedding is associated with its corresponding Chunk metadata.
+
+- The Index is a vector database storing Embeddings and their associated metadata.
+  - Supports fast similarity search using FAISS.
+  - The Index is persistent and can be saved to disk.
+  - Supports incremental updates when files in The Code Base are added, modified, or deleted.
+
+- The Query represents a user-provided natural language search string.
+  - The Query is converted into an Embedding using the same model as the code Chunks.
+  - The Query Embedding is compared with indexed Embeddings to retrieve top-k similar Chunks.
+
+- The CLI (Command-Line Interface) is the interface through which The User interacts with the Code Retrieval Tool.
+  - Accepts search queries and optional parameters such as:
+    - `--top-k` – number of results to return
+    - `--language` – filter by programming language
+    - `--path` – restrict search to specific directories
+
+- The User is a human interacting with the Code Retrieval Tool via CLI.
+
+***Non-Functional Requirements:***
+
+- The Implementation must be written in Python 3.11+.
+
+- Python docstrings should be composed of single line comments starting with '#'. Multiline comments should not be used.
+
+- The following external libraries must be used:
+  - `sentence-transformers` or `transformers` for embedding generation.
+  - `faiss` for vector indexing and similarity search.
+  - `click` for command-line interface handling.
+
+- The Index must be stored persistently on disk and loadable for repeated searches without regeneration.
+
+- Incremental updates must efficiently update the Index without rebuilding from scratch.
+
+- File operations must handle large codebases gracefully, avoiding excessive memory consumption.
+
+- Embeddings and Index must be stored in a format that supports metadata retrieval alongside vectors.
+
+- [ModelUse](./jina_model_use.md) reference file describes the implementation of the Jina Embedding model in then sentence-transformers and transformers libraries. It also describes an example of chunking.
+
+- For testing, the jina-embeddings-v2-small-en model should be used.
+
+- The model should be usable on a CPU.
+
+***Test Requirements:***
+
+- Conformance Tests must test the CLI
+
+- CLI Tests must simulate:
+  - Search commands with various queries
+  - Output formatting and metadata display
+  - Handling of invalid or empty queries
+
+- The CLI calls that include loading of the index and the model might take a long time so they should not be limited by short timeouts during testing. A model can take up to 2 minutes to load if it has not been downloaded beforehand.
+
+- The CLI executable file will be in the current working directory when testing.
+
+- The Conformance Tests will be run using the `python -m unittest discover` call.
+
+## File parsing
+
+***Non-Functional Requirements:***
+
+- The code should be implemented in the file_parsing folder.
+
+***Functional Requirements:***
+
+- Implement a functionality to extract Chunks from a given file.
+  - Take a file path as input.
+  - Extract Chunks from the file with accurate metadata (filename, line range, function/class name, chunk text).
+  - The chunking strategy should be heuristic line-based chunking where the code is split into chunks of 50 lines.
+  - Return the extracted Chunks.
+
+- Implement a function that takes a folder path and a list of file extensions as input and extracts Chunks from each file.
+  - Should only extract Chunks from files that match extensions from the input extensions list.
+  - Returns a list of Chunks composed of chunks extracted from all files.
+
+## Embeddings
+
+***Non-Functional Requirements:***
+
+- The code should be implemented in the embeddings folder.
+
+***Functional Requirements:***
+
+- Implement an CodeEmbedding class that loads an embedding model.
+  - The class should contain an __init__ function that initializes the embedding model using the SentenceTransformers library.
+  - The model name should be taken as an optional input and be "jinaai/jina-code-embeddings-0.5b" by default.
+
+- Extend the functionality of the CodeEmbedding class with an extract_embeddings function that takes as input a Chunk or string and extracts the embeddings from the chunk text or input string using the embedding model.
+  - The function should return the extracted embedding of the input Chunk or and input string.
+
+- Implement the process_chunks function in the CodeEmbeddingClass that takes a lit of Chunks, extracts embeddings from each of them and associates the resulting embedding with the Chunk.
+
+## Index
+
+***Non-Functional Requirements:***
+
+- The index should be implemented in the data_index folder
+
+- The Index should be implemented with functions from the faiss library
+
+***Functional Requirements:***
+
+- Create the CodeIndex class with an init function that initializes the Index of Embeddings.
+  - Use the faiss library to create an index.
+  - initialize the metadata as an empty list
+
+- Implement an add function to the CodeIndex class that takes an embeding and metadata as input and adds them to the Index.
+
+- Implement functionality in the CodeIndex class to load the FAISS Index and metadata taking file paths as input.
+  - The FAISS index and metadata
+
+- Implement a save function that writes the FAISS Index and metadata to their respective files.
+
+- Implement a query_index function that takes a string as an input and returns the top K results from the Index.
+  - The embeddings module should be used to extract the embeddings from an input string to compare to the embeddings in the Index.
+  - The function should return the the top K results from the Index.
+
+## CLI
+
+***Non-Functional Requirements:***
+
+- The CLI entry point should be defined in the code_search.py file.
+
+***Functional Requirements:***
+
+- Implement the --init CLI command:
+  - Take a folder path as input
+  - Initializes a new CodeIndex
+  - Extract Chunks from files in the chosen folder using functions in the file_parsing module
+  - Fails if the Index at that folder path already exists
+  - Extract embeddings from Chunks using the process_chunks function from the embeddings module
+  - Adds the embeddings to the index using the add function of the CodeIndex class
+  - Saves the index using the save function of the CodeIndex class.
+
+  ***Acceptance Tests:***
+
+  - The init command should result in a FAISS index file and a metadata file where both files should have the same number of entries and the metadata file should contain accurate metadata for every extracted Chunk.
+
+- Implement the --query CLI command:
+  - Take an index file and a query as input
+  - Load the index using the load function of the CodeIndex class.
+  - Extract the embedding of the query using extract_embeddings function of the embeddings module
+  - Search the index using the search function of the CodeIndex class to obtain top-k chunks.
+  - Print out the top-k Chunks.
+
+- Implement the --add-folder CLI command:
+  - Take a folder path and an Index path as input
+  - Extract Chunks from files in the chosen folder using functions in the file_parsing module
+  - Extract embeddings from Chunks using functions from the embeddings module
+  - Adds the embeddings to the index using the add function of the CodeIndex class
+  - Saves the index using the save function of the CodeIndex class.

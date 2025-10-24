@@ -18,7 +18,16 @@ fi
 
 current_dir=$(pwd)
 
+echo "Current directory: $current_dir"
+echo "Build folder name: $1"
+echo "Conformance tests folder name: $2"
+echo "--------------------------------"
+
 PYTHON_BUILD_SUBFOLDER=python_$1
+
+echo "Conformance tests absolute path: $current_dir/$2"
+echo "Python Build folder absolute path: $current_dir/python_$1"
+echo "--------------------------------"
 
 if [ "${VERBOSE:-}" -eq 1 ] 2>/dev/null; then
   printf "Preparing Python build subfolder: $PYTHON_BUILD_SUBFOLDER\n"
@@ -56,7 +65,7 @@ fi
 if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 else
-    echo "Error: requirements.txt not found.."
+    echo "requirements.txt not found.. skipping requirements installation."
 fi
 
 end_time=$(date +%s.%N)
@@ -73,7 +82,7 @@ echo "$output"
 
 # Check if no tests were discovered
 if echo "$output" | grep -q "Ran 0 tests in"; then
-    printf "\nError: No unittests discovered.\n"
+    printf "\nError: No conformance tests discovered in $current_dir/$2.\n"
     exit 1
 fi
 
