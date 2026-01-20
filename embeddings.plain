@@ -1,0 +1,18 @@
+---
+import:
+  - code_retrieval_nfrs
+requires:
+  - file_parsing
+---
+
+***technical specs***
+
+- The code should be implemented in the embeddings folder.
+
+***functional specs***
+
+- Implement an CodeEmbedding class that implements the :Embedding:
+  - The class should contain an __init__ function that initializes the embedding model using the SentenceTransformers library.
+  - The model name should be taken as an optional input and be "jinaai/jina-code-embeddings-0.5b" by default.
+
+- Implement the process_chunks function in the CodeEmbeddingClass that takes a list of :Chunk: instances, extracts :Embedding: instances from each of them and associates the resulting :Embedding: with the :Chunk:.

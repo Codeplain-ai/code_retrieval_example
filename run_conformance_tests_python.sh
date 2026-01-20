@@ -17,17 +17,12 @@ if [ -z "$2" ]; then
 fi
 
 current_dir=$(pwd)
-
 echo "Current directory: $current_dir"
 echo "Build folder name: $1"
 echo "Conformance tests folder name: $2"
 echo "--------------------------------"
 
 PYTHON_BUILD_SUBFOLDER=python_$1
-
-echo "Conformance tests absolute path: $current_dir/$2"
-echo "Python Build folder absolute path: $current_dir/python_$1"
-echo "--------------------------------"
 
 if [ "${VERBOSE:-}" -eq 1 ] 2>/dev/null; then
   printf "Preparing Python build subfolder: $PYTHON_BUILD_SUBFOLDER\n"
@@ -46,7 +41,7 @@ else
     printf "Subfolder does not exist. Creating it...\n"
   fi
 
-  mkdir $PYTHON_BUILD_SUBFOLDER
+  mkdir -p $PYTHON_BUILD_SUBFOLDER
 fi
 
 cp -R $1/* $PYTHON_BUILD_SUBFOLDER
@@ -59,20 +54,26 @@ if [ $? -ne 0 ]; then
   exit $UNRECOVERABLE_ERROR_EXIT_CODE
 fi
 
+printf "Creating and activating virtual environment...\n"
 
+# Time the virtual environment creation and activation
+start_time=$(date +%s.%N)
 
 # Install requirements if requirements.txt exists
 if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 else
-    echo "requirements.txt not found.. skipping requirements installation."
+    echo "Warning: requirements.txt not found. Cannot proceed with setting up requirements. The requirements may also already be installed"
 fi
 
 end_time=$(date +%s.%N)
 
+# Calculate and display the time taken
+duration=$(echo "$end_time - $start_time" | bc)
+printf "Requirements setup completed in %.2f seconds\n\n" "$duration"
 
 # Execute all Python conformance tests in the build folder
-printf "Running Python conformance tests...\n\n"
+printf "Running Python conformance tests in the conformance tests folder...\n\n"
 
 output=$(python -m unittest discover -b -s "$current_dir/$2" 2>&1)
 exit_code=$?
@@ -82,7 +83,7 @@ echo "$output"
 
 # Check if no tests were discovered
 if echo "$output" | grep -q "Ran 0 tests in"; then
-    printf "\nError: No conformance tests discovered in $current_dir/$2.\n"
+    printf "\nError: No unittests discovered.\n"
     exit 1
 fi
 

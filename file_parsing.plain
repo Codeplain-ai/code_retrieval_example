@@ -1,0 +1,21 @@
+---
+import:
+  - code_retrieval_nfrs
+---
+
+
+***technical specs***
+
+- The code should be implemented in the file_parsing folder.
+
+***functional specs***
+
+- Implement a functionality to extract :Chunk:s from a given file.
+  - Take a file path as input.
+  - Extract :Chunk:s from the file with accurate metadata (filename, line range, function/class name, chunk text).
+  - The chunking strategy should be heuristic line-based chunking where the code is split into chunks of 50 lines.
+  - Return the extracted :Chunk:s and their respective metadata.
+
+- Implement a function that takes a folder path and a list of file extensions as input and extracts :Chunk:s from each file.
+  - Should only extract :Chunk:s from files that match extensions from the input extensions list.
+  - Returns a list of :Chunk:s composed of :Chunk:s extracted from all files.

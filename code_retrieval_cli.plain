@@ -1,0 +1,39 @@
+---
+import:
+  - code_retrieval_nfrs
+requires:
+  - code_index
+---
+
+***technical specs***
+
+- :CLI: entry point should be defined in the code_search.py file in the base folder.
+
+***test specs***
+
+- Where appropriate, the Conformance Tests must test the :CLI:
+
+- :CLI: Tests must simulate:
+  - Search commands with various queries
+  - Output formatting and metadata display
+  - Handling of invalid or empty queries
+
+- The :CLI: executable file will be in the current working directory when testing.
+
+***functional specs***
+
+- Implement the --init CLI command:
+  - Take a folder path as input
+  - Initializes a new CodeIndex
+  - Extract :Chunk:s from files in the chosen folder using functions in the file_parsing module
+  - Fails if :Index: at that folder path already exists
+  - Extract :Embedding: instances from :Chunk: instances using the process_chunks function from the embeddings module
+  - Adds the :Embedding: instances to :Index: using the add function of the CodeIndex class
+  - Saves :Index: using the save function of the CodeIndex class.
+
+- Implement the --query CLI command:
+  - Take an :Index: file path and a :Query: text as input
+  - Load :Index: using the load function of the CodeIndex class.
+  - Extract the :Embedding: of the :Query: using extract_embeddings function of the embeddings module
+  - Search :Index: using the search function of the CodeIndex class to obtain top-k :Chunk: instances.
+  - Print out the top-k :Chunk: instances.

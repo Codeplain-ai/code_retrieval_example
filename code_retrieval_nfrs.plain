@@ -1,0 +1,72 @@
+***definitions***
+
+- :CodeBase: is a collection of source files stored in a directory structure.
+  - :CodeBase: can include multiple programming languages (.py, .js, .java, etc.).
+  - :CodeBase: may include nested directories and submodules.
+  - Only files matching specified extensions are considered for indexing.
+
+- :Chunk: represents a logical portion of code extracted from :CodeBase:.
+  - A :Chunk: can correspond to:
+    - A function or method
+    - A class
+    - A block of code (e.g., grouped lines)
+  - Each :Chunk: has the following metadata:
+    - Filename – source file path
+    - Line Range – starting and ending line numbers
+    - Function/Class Name – if applicable
+    - :Chunk: Text – code snippet for display
+
+- :Embedding: is a vector representation of a :Chunk: used for semantic similarity search.
+  - :Embedding: instances are generated using a pre-trained model code embedding model.
+  - Each :Embedding: is associated with its corresponding :Chunk: metadata.
+
+- :Index: is a vector database storing :Embedding: instances and their associated metadata.
+  - Supports fast similarity search using FAISS.
+  - :Index: is persistent and can be saved to disk.
+  - Supports incremental updates when files in :CodeBase: are added, modified, or deleted.
+
+- :Query: represents a user-provided natural language search string.
+  - :Query: is converted into an :Embedding: using the same model as the code :Chunk: instances.
+  - The :Query: :Embedding: is compared with indexed :Embedding: instances to retrieve top-k similar :Chunk: instances.
+
+- :CodeRetrievalTool: is a CLI application that can extract :Embedding: instances from the :CodeBase: files, save them to an :Index: and then search the :Index: using a natural language :Query:.
+
+- :User: is a human interacting with the :CodeRetrievalTool:.
+
+- :CLI: (Command-Line Interface) is the interface through which :User: interacts with the :CodeRetrievalTool:.
+  - Accepts search queries and optional parameters such as:
+    - `--top-k` – number of results to return
+    - `--extensions` – filter by file extensions
+    - `--folder-path` – restrict search to specific directories
+
+***technical specs***
+
+- :CodeRetrievalTool: must be written in Python 3.11+.
+
+- The following external libraries must be used:
+  - `sentence-transformers` for embedding generation.
+  - `faiss` for vector indexing and similarity search.
+  - `click` for command-line interface handling.
+  - `pytest` for automated testing.
+
+- :Index: must be stored persistently on disk and loadable for repeated searches without regeneration.
+
+- Incremental updates must efficiently update :Index: without rebuilding from scratch.
+
+- File operations must handle large codebases gracefully, avoiding excessive memory consumption.
+
+- :Embedding: instances and :Index: must be stored in a format that supports metadata retrieval alongside vectors.
+
+- [ModelUse](./jina_model_use.md) reference file describes the implementation of the Jina Embedding model in then sentence-transformers and transformers libraries. It also describes an example of chunking.
+
+- For testing, the jina-embeddings-v2-small-en model should be used.
+
+- The model should be usable on a CPU.
+
+***test specs***
+
+- The Conformance Tests will be run using the `python -m unittest discover` call.
+
+- Conformance Tests that include loading of :Index: and the model might take a long time so they should not be limited by short timeouts during testing. A model can take up to 2 minutes to load if it has not been downloaded beforehand.
+
+- The :CLI: executable file will be in the current working directory when testing.

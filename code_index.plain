@@ -1,0 +1,33 @@
+---
+import:
+  - code_retrieval_nfrs
+requires:
+  - embeddings
+---
+
+***technical specs***
+
+- :Index: should be implemented in the data_index folder
+
+- :Index: should be implemented with functions from the faiss library
+
+***functional specs***
+
+- Create the CodeIndex class that implements the :Index: 
+  - It should contain an init function that initializes the :Index: of :Embedding: instances.
+  - Use the faiss library to create a FAISS :Index: object.
+  - initialize the metadata as an empty list
+
+- Implement an add function to the CodeIndex class that takes an :Embedding: and :Chunk: metadata as input and adds them to the :Index: and metadata.
+
+- Implement functionality in the CodeIndex class to load the FAISS :Index: and metadata taking file paths as input.
+
+- Implement a save function that writes the FAISS :Index: and metadata to their respective files.
+
+  ***acceptance tests***
+
+  - The save function should result in a FAISS index file and a metadata file where both files should have the same number of entries and the metadata file should contain accurate metadata for every extracted Chunk.
+
+- Implement a query_index function that takes a string as an input and returns the top K results from :Index:.
+  - The embeddings module should be used to extract the :Embedding: instances from an input string to compare to the :Embedding: instances in :Index:.
+  - The function should return the the top K results from :Index:.

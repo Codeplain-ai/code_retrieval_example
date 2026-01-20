@@ -9,6 +9,11 @@ if [ -z "$1" ]; then
   exit $UNRECOVERABLE_ERROR_EXIT_CODE
 fi
 
+current_dir=$(pwd)
+echo "Current directory: $current_dir"
+echo "Build folder name: $1"
+echo "--------------------------------"
+
 PYTHON_BUILD_SUBFOLDER=python_$1
 
 if [ "${VERBOSE:-}" -eq 1 ] 2>/dev/null; then
@@ -28,7 +33,7 @@ else
     printf "Subfolder does not exist. Creating it...\n"
   fi
 
-  mkdir $PYTHON_BUILD_SUBFOLDER
+  mkdir -p $PYTHON_BUILD_SUBFOLDER
 fi
 
 cp -R $1/* $PYTHON_BUILD_SUBFOLDER
@@ -43,13 +48,22 @@ fi
 
 printf "Creating and activating virtual environment...\n"
 
+# Time the virtual environment creation and activation
+start_time=$(date +%s.%N)
 
 # Install requirements if requirements.txt exists
 if [ -f "requirements.txt" ]; then
     pip install -r requirements.txt
 else
-    echo "Error: requirements.txt not found.."
+    echo "Error: requirements.txt not found. Cannot proceed with setting up requirements."
 fi
+
+end_time=$(date +%s.%N)
+
+# Calculate and display the time taken
+duration=$(echo "$end_time - $start_time" | bc)
+printf "Requirements setup completed in %.2f seconds\n\n" "$duration"
+
 
 # Execute all Python unittests in the subfolder
 echo "Running Python unittests in $PYTHON_BUILD_SUBFOLDER..."
