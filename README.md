@@ -2,7 +2,7 @@
 
 This project is a demonstration of a code retrieval system defined in ***plain.
 
-The main ***plain specification file is the: `code_retrieval_demo.plain`.
+The main ***plain specification file is the: `code_retrieval_cli.plain`.
 
 The unit test and conformance test scripts are defined in `run_unittests_python.sh` and `run_conformance_tests_python.sh`, respectively. They are both already set in the `config.yaml` file that is used by default by the plain2code renderer.
 
