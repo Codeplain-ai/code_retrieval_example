@@ -8,11 +8,11 @@ The unit test and conformance test scripts are defined in `run_unittests_python.
 
 ## Usage
 
-Once rendered, the main entry point for this example is `code_search.py` located in the `build` folder.
+Once rendered, the main entry point for this example is `code_search.py` located in the `plain_modules/code_retrieval_cli` folder.
 
-First, navigate to the `build` directory:
+First, navigate to the `plain_modules/code_retrieval_cli` directory:
 ```bash
-cd build
+cd plain_modules/code_retrieval_cli/
 ```
 
 Here are some of the available commands:

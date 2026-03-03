@@ -1,11 +1,11 @@
 ---
 import:
-  - code_retrieval_nfrs
+  - code_retrieval_reqs
 requires:
   - file_parsing
 ---
 
-***technical specs***
+***implementation reqs***
 
 - The code should be implemented in the embeddings folder.
 

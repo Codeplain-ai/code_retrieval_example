@@ -1,10 +1,10 @@
 ---
 import:
-  - code_retrieval_nfrs
+  - code_retrieval_reqs
 ---
 
 
-***technical specs***
+***implementation reqs***
 
 - The code should be implemented in the file_parsing folder.
 

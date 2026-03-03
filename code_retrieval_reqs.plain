@@ -39,7 +39,7 @@
     - `--extensions` – filter by file extensions
     - `--folder-path` – restrict search to specific directories
 
-***technical specs***
+***implementation reqs***
 
 - :CodeRetrievalTool: must be written in Python 3.11+.
 
@@ -63,7 +63,7 @@
 
 - The model should be usable on a CPU.
 
-***test specs***
+***test reqs***
 
 - The Conformance Tests will be run using the `python -m unittest discover` call.
 

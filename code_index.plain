@@ -1,11 +1,11 @@
 ---
 import:
-  - code_retrieval_nfrs
+  - code_retrieval_reqs
 requires:
   - embeddings
 ---
 
-***technical specs***
+***implementation reqs***
 
 - :Index: should be implemented in the data_index folder
 
